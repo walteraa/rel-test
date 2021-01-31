@@ -1,11 +1,8 @@
 # frozen_string_literal: true
 
 class GitNode
+  include ActiveModel::Model
   attr_accessor :id, :message, :timestamp
 
-  def initialize(hash, message, timestamp)
-    @id = hash
-    @message = message
-    @timestamp = timestamp
-  end
+  validates :id, :timestamp, presence: true
 end

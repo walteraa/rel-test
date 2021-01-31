@@ -17,7 +17,7 @@ module Api
           sources = node['parents_hash'].split(' ')
           sources.each { |source| edges << { 'source' => source, 'target' =>node['hash']  } }
         end
-        @git_graph = GitGraph.new(git_log, edges)
+        @git_graph = GitGraph.new(nodes: git_log, edges: edges)
       end
     end
   end

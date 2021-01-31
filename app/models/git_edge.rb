@@ -1,10 +1,8 @@
 # frozen_string_literal: true
 
 class GitEdge
+  include ActiveModel::Model
   attr_accessor :source, :target
 
-  def initialize(source, target)
-    @source = source
-    @target = target
-  end
+  validates :source, :target, presence: true
 end
