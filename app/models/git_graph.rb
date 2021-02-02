@@ -4,7 +4,7 @@ class GitGraph
   include ActiveModel::Model
   attr_accessor :nodes, :edges
 
-  def initialize(nodes: nodes, edges: edges)
+  def initialize(nodes: , edges: )
     @nodes = nodes&.map do |node|
       GitNode.new(id: node['hash'],
                   message: node['message'],
