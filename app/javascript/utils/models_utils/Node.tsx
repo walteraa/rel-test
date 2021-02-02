@@ -1,5 +1,6 @@
 class Node{
     id: string
+    timestamp: number
     parents: Node[]
     children: Node[]
 
@@ -17,11 +18,12 @@ class Node{
         5: "#15C1B6"
     }
 
-    constructor(id: string, parents: Node[], children: Node[] ) {
+    constructor(id: string, timestamp: number, parents: Node[], children: Node[] ) {
         if (!id){
             throw new Error("Invalid id")
         }
         this.id = id
+        this.timestamp = timestamp
         this.parents = parents
         this.children = children
     }

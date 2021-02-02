@@ -16,7 +16,7 @@ class TreeUtils {
         }
         this.nodes = {}
 
-        this.unpolished_nodes.forEach((node) => this.nodes[node['id']] = new Node(node['id'], [], []))
+        this.unpolished_nodes.forEach((node) => this.nodes[node['id']] = new Node(node['id'],parseInt(node['timestamp']), [], []))
         this.edges.forEach((edge) => {
             this.nodes[edge['from']].children.push(this.nodes[edge['to']])
             this.nodes[edge['to']].parents.push(this.nodes[edge['from']])
@@ -41,15 +41,13 @@ class TreeUtils {
             root.y += 200
         }
 
-        // TODO: Make sure the hashes from the same parent are ordered
+        // TODO: Make sure we can order by timestamp within the same parent
         const temp_nodes =  root.children.sort((n1,n2) => {
-            const id1 = n1.id.slice(0,7)
-            const id2 = n2.id.slice(0,7)
-            if (id1 > id2 ) {
+            if (n1.timestamp > n1.timestamp ) {
                 return -1;
             }
 
-            if (id1 < id2) {
+            if (n1.timestamp < n1.timestamp) {
                 return 1;
             }
 

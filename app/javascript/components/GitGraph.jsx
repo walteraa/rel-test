@@ -21,7 +21,7 @@ class GitGraph extends Component {
                     return {
                         id: node.id,
                         label: node.id.slice(0, 7),
-                        title:  (new Date(node.timestamp * 1000)).toDateString() + " - " + node.message,
+                        timestamp:  node.timestamp,
                     }
                 }),
                 edges: json.git_graph.edges.map((edge) => {
