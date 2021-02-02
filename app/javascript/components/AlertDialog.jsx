@@ -4,7 +4,7 @@ import Alert from "react-bootstrap/Alert";
 
 const messages = {
     success: { title: 'The commits were successfully merged!', message: (source, target) => { return `Successfully merged the commit ${source} to ${target}`} },
-    danger: { title: 'Error when merging these commits!', essage: (source, target) => { return `Failed when trying to merge commit ${source} to ${target}` }}
+    danger: { title: 'Error when merging these commits!', message: (source, target) => { return `Failed when trying to merge commit ${source} to ${target}` }}
 }
 
 const AlertDialog = ({ show, severity, onClose, sourceCommit, targetCommit }) => {

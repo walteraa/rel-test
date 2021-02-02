@@ -82,6 +82,14 @@ class GitGraph extends Component {
         }).catch((err)=> { console.log(err) })
     }
 
+    async sendMergeCommand(sourceHash, targetHash, message){
+        GitGraphApi.sendMergeCommand(sourceHash, targetHash, message).then(() => {
+            this.setState({show_alert: true, severity: 'success', sourceCommit: sourceHash, targetCommit: targetHash  })
+        }).catch(() =>{
+            this.setState({show_alert: true, severity: 'danger', sourceCommit: sourceHash, targetCommit: targetHash  })
+        })
+    }
+
     hideDiffModal(){
         this.setState({ show: false})
     }
@@ -126,12 +134,12 @@ class GitGraph extends Component {
                                 name="message"
                                 type="text"
                                 value={this.state.message}
-                                onChange={this.onInputchange}
+                                onChange={(event) => this.onInputchange(event)}
                             /></p>
                             <button onClick={onClose}>No</button>
                             <button
                                 onClick={() => {
-                                    this.handleClickDelete();
+                                    this.sendMergeCommand(sourceCommit, targetCommit,this.state.message).then().catch((err) => console.log(err))
                                     onClose();
                                 }}
                             >
