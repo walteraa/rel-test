@@ -44,11 +44,11 @@ class TreeUtils {
         // TODO: Make sure we can order by timestamp within the same parent
         const temp_nodes =  root.children.sort((n1,n2) => {
             if (n1.timestamp > n1.timestamp ) {
-                return -1;
+                return 1;
             }
 
             if (n1.timestamp < n1.timestamp) {
-                return 1;
+                return -1;
             }
 
             return 0;
