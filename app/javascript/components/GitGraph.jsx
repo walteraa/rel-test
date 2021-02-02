@@ -1,44 +1,66 @@
 import React, { Component } from "react";
-import Graph from "react-graph-vis";
+import ReactFlow from 'react-flow-renderer';
+import TreeUtils from "../utils/TreeUtils";
+import DiffModal from './DiffModal'
+import GitGraphApi from '../integration/GitGraphApi'
 
 class GitGraph extends Component {
-    options = {
-        clickToUse: true,
-        layout: {
-            improvedLayout:true,
-            hierarchical: {
-                levelSeparation: 100,
-                direction: "DU",
-                blockShifting: false,
-                edgeMinimization: false,
-                parentCentralization: false,
-                sortMethod: 'directed'
-            }
-         },
-        edges: {
-            color: "#000000",
-
-        },
-        height: "1920",
-        physics: {
-            enabled: false,
-
-        }
-    };
-
-    events = {
-        select: function(event) {
-            var { nodes, edges } = event;
-        },
-        click: function (event) {
-            console.log(event); // Open modal goes here
-        },
-
-    };
-
-    constructor() {
+    constructor(value) {
         super();
-        this.state = { data: {} };
+        this.state = { data: {}, show: false,  git_node: null }
+        // console.log(value)
+    }
+    async componentDidMount() {
+        try {
+            const response = await fetch(`api/v1/git_graph`)
+            const json = await response.json();
+            const git_graph = {
+                nodes: json.git_graph.nodes.reverse().map((node) => {
+                    return {
+                        id: node.id,
+                        label: node.id.slice(0, 7),
+                        title:  (new Date(node.timestamp * 1000)).toDateString() + " - " + node.message,
+                        fixed: {x: false, y: false }
+                    }
+                }),
+                edges: json.git_graph.edges.map((edge) => {
+                    return {from: edge.source, to: edge.target}
+                })
+            }
+            const tree_utils = new TreeUtils(git_graph.nodes,  git_graph.edges)
+            tree_utils.process()
+
+            let local_nodes = []
+            let local_edges = []
+            for (const [key, node] of Object.entries(tree_utils.nodes)) {
+                local_nodes.push( { id: node.id,
+                                    data: { label: node.id.slice(0, 7),
+                                            branch_id: node.branch_index,
+                                            level: node.level },
+                                    position: { x: node.getX(), y: node.getY() },
+                                    style: { color: node.getColor(), borderColor: node.getColor() }} )
+
+            }
+
+            tree_utils.edges.forEach((edge) => {
+                local_edges.push({
+                    id: edge['from'].slice(0,7) + "-" + edge['to'].slice(0,7),
+                    source: edge['from'],
+                    target: edge['to']
+                })
+            })
+
+            this.setState(
+                {
+                    data: {
+                        nodes: local_nodes,
+                        edges: local_edges
+                    }
+                })
+
+            } catch (e) {
+            console.log(e)
+        }
     }
 
     isEmpty() {
@@ -51,61 +73,49 @@ class GitGraph extends Component {
         return (this.state.data.nodes === undefined || this.state.data.nodes.length == 0);
     }
 
-    async componentDidMount() {
-        try {
-            const response = await fetch(`api/v1/git_graph.json`)
-            const json = await response.json();
-            const git_graph = {
-                nodes: json.git_graph.nodes.reverse().map((node) => {
-                    return {
-                        id: node.id,
-                        label: node.id.slice(0, 7),
-                        title:  (new Date(node.timestamp * 1000)).toDateString(),
-                        fixed: {x: false, y: false }
-                    }
-                }),
-                edges: json.git_graph.edges.map((edge) => {
-                    return {from: edge.source, to: edge.target}
-                })
-            }
-            this.setState({ data: git_graph })
-        } catch (error) {
-            console.log(error);
-        }
+    async fetchDiff(commit_hash){
+        GitGraphApi.getNode(commit_hash).then(({ data })=> {
+            this.setState({
+                git_node: data
+            });
+        }).catch((err)=> { console.log(err) })
     }
 
+    hideDiffModal(){
+        this.setState({ show: false})
+    }
 
-
+    showModal(element){
+        this.setState({ show: true} )
+        this.fetchDiff(element.id).then().catch((err) => console.log(err))
+    }
     render() {
-        if(!this.isEmpty()){
-            return(
-                <div id='index-page'>
-                    <header>
-                        <h1>Reliant Test</h1>
-                    </header>
-                    <div id='git-graph'>
-                        <Graph
-                            graph={this.state.data}
-                            options={this.options}
-                            events={this.events}
-                            getNetwork={network => {
-                                //  if you want access to vis.js network api you can set the state in a parent component using this property
-                            }}
+        if(this.isEmpty()){
+            return(<div id='index-page'>
+                <header>
+                    <h1>Reliant Test 2</h1>
+                </header>
+            </div>)
+        }else{
+            return(<div id='index-page'>
+                <header>
+                    <h1>Reliant Test 2</h1>
+                </header>
+                <DiffModal git_node={this.state.git_node} show={this.state.show} handleClose={() => { this.hideDiffModal() }}>
+                    "None"
+                </DiffModal>
+                <div id='git-graph'>
+                    <div style={{ height: 1960 }}>
+                        <ReactFlow
+                            elements={ this.state.data.nodes.concat(this.state.data.edges) }
+                            onElementClick = {(event, element) => this.showModal(element) }
                         />
                     </div>
                 </div>
-            )
-        }else{
-            return(
-                <div id='index-page'>
-                    <header>
-                        <h1>Reliant Test</h1>
-                    </header>
-                </div>)
+            </div>)
         }
 
     }
-
 }
 
 export default GitGraph
