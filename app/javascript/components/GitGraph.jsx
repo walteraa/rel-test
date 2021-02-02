@@ -139,7 +139,7 @@ class GitGraph extends Component {
                             <button onClick={onClose}>No</button>
                             <button
                                 onClick={() => {
-                                    this.sendMergeCommand(sourceCommit, targetCommit,this.state.message).then().catch((err) => console.log(err))
+                                    this.sendMergeCommand(selectedNode.id, colisionNodes[0].id,this.state.message).then().catch((err) => console.log(err))
                                     onClose();
                                 }}
                             >
