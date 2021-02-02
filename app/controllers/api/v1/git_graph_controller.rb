@@ -13,6 +13,9 @@ module Api
         @node.diff = Git::ClientWrapper.get_diff(@node.id)
       end
 
+      def merge
+      end
+
       private
 
       def get_logs
