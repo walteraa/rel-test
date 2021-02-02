@@ -14,6 +14,16 @@ module Api
       end
 
       def merge
+        source = params[:source_hash]
+        target = params[:target_hash]
+        message = request.body.read
+        response = Git::ClientWrapper.merge_commits(source, target, message)
+
+        if(response)
+          head :no_content
+        else
+          head :unprocessable_entity
+        end
       end
 
       private
