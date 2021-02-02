@@ -50,3 +50,21 @@
 .added {
     color: forestgreen;
 }
+.date_info {
+    margin-left: 5px;
+    font-weight: bold;
+    color: whitesmoke;
+}
+
+.commit_info {
+    color: yellow;
+    margin-left: 5px;
+    font-weight: bold;
+}
+
+.message_info {
+    margin-left: 25px;
+    margin-bottom: 50px;
+    font-weight: bold;
+    color: whitesmoke;
+}

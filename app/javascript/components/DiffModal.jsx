@@ -5,7 +5,6 @@ import '../../assets/stylesheets/Modal.css'
 
 const DiffModal = ({ handleClose, show, git_node, children }) => {
     const showHideClassName = show ? "modal display-block" : "modal display-none";
-
     if(!git_node){
         return (
             <div className={showHideClassName}>
@@ -30,9 +29,11 @@ const DiffModal = ({ handleClose, show, git_node, children }) => {
                             X
                     </button>
 
-                    <p><span className="display-block">Commit ID: {git_node.id} </span></p>
+                    <p><span className="display-block commit_info">Commit {git_node.id} </span></p>
+                    <p><span className="display-block date_info">Date: {new Date(git_node.timestamp * 1000).toDateString()} </span></p>
+                    <p><span className="display-block message_info">{ git_node.message } </span></p>
 
-                    { console.log(git_node.diff.split('\n')) }
+                    {/*<p><span className="display-block">{ new Date(node.timestamp * 1000).toDateString() + " - " + node.message }</span></p>*/}
                     <p>
                     {
                             git_node.diff.split('\n').map((line) => {
@@ -56,7 +57,7 @@ const spanDecorate = (text) =>{
     }else if(text.startsWith('-') && (text.length == 1 || text.charAt(1) != '-')){
         spanClass += ' removed'
     }
-    console.log(spanClass)
+
     return <span className={spanClass}> { text } </span>
 }
 
