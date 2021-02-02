@@ -3,47 +3,48 @@ import ReactFlow from 'react-flow-renderer';
 import TreeUtils from "../utils/TreeUtils";
 import DiffModal from './DiffModal'
 import GitGraphApi from '../integration/GitGraphApi'
+import AlertDialog from './AlertDialog'
+import { confirmAlert } from 'react-confirm-alert'; // Import
+import 'react-confirm-alert/src/react-confirm-alert.css'
 
 class GitGraph extends Component {
-    constructor(value) {
+    constructor() {
         super();
         this.state = { data: {}, show: false,  git_node: null }
-        // console.log(value)
     }
     async componentDidMount() {
         try {
             const response = await fetch(`api/v1/git_graph`)
             const json = await response.json();
-            const git_graph = {
+            const gitGraph = {
                 nodes: json.git_graph.nodes.reverse().map((node) => {
                     return {
                         id: node.id,
                         label: node.id.slice(0, 7),
                         title:  (new Date(node.timestamp * 1000)).toDateString() + " - " + node.message,
-                        fixed: {x: false, y: false }
                     }
                 }),
                 edges: json.git_graph.edges.map((edge) => {
                     return {from: edge.source, to: edge.target}
                 })
             }
-            const tree_utils = new TreeUtils(git_graph.nodes,  git_graph.edges)
-            tree_utils.process()
+            const treeUtils = new TreeUtils(gitGraph.nodes,  gitGraph.edges)
+            treeUtils.process()
 
-            let local_nodes = []
-            let local_edges = []
-            for (const [key, node] of Object.entries(tree_utils.nodes)) {
-                local_nodes.push( { id: node.id,
+            let localNodes = []
+            let localEdges = []
+            for (const [_, node] of Object.entries(treeUtils.nodes)) {
+                localNodes.push( { id: node.id,
                                     data: { label: node.id.slice(0, 7),
                                             branch_id: node.branch_index,
-                                            level: node.level },
+                                            title: node.title},
                                     position: { x: node.getX(), y: node.getY() },
                                     style: { color: node.getColor(), borderColor: node.getColor() }} )
 
             }
 
-            tree_utils.edges.forEach((edge) => {
-                local_edges.push({
+            treeUtils.edges.forEach((edge) => {
+                localEdges.push({
                     id: edge['from'].slice(0,7) + "-" + edge['to'].slice(0,7),
                     source: edge['from'],
                     target: edge['to']
@@ -53,8 +54,8 @@ class GitGraph extends Component {
             this.setState(
                 {
                     data: {
-                        nodes: local_nodes,
-                        edges: local_edges
+                        nodes: localNodes,
+                        edges: localEdges
                     }
                 })
 
@@ -73,8 +74,8 @@ class GitGraph extends Component {
         return (this.state.data.nodes === undefined || this.state.data.nodes.length == 0);
     }
 
-    async fetchDiff(commit_hash){
-        GitGraphApi.getNode(commit_hash).then(({ data })=> {
+    async fetchDiff(commitHash){
+        GitGraphApi.getNode(commitHash).then(({ data })=> {
             this.setState({
                 git_node: data
             });
@@ -89,18 +90,74 @@ class GitGraph extends Component {
         this.setState({ show: true} )
         this.fetchDiff(element.id).then().catch((err) => console.log(err))
     }
+
+    onNodeDragStop = (event, selectedNode) => {
+
+        const nodeDiv = document.querySelector(`div[data-id='${selectedNode.id}']`)
+        const selectedNodeBounding =  nodeDiv.getBoundingClientRect()
+        const colisionNodes = this.state.data.nodes.filter((node) => {
+
+            const div = document.querySelector(`div[data-id='${node.id}']`)
+
+            if(!div || node.id == selectedNode.id)
+                return false
+
+            const nodeBounding = div.getBoundingClientRect()
+
+
+            return (
+                Math.abs(selectedNodeBounding.x - nodeBounding.x) <= nodeBounding.width &&
+                Math.abs(selectedNodeBounding.y - nodeBounding.y) <= nodeBounding.height
+            )
+        })
+
+        if(colisionNodes.length == 1){
+            const sourceCommit = selectedNode.id.slice(0, 7)
+            const targetCommit = colisionNodes[0].id.slice(0,7)
+            confirmAlert({
+                title: 'Merge commits',
+                message: `Are you sure you want merge ${sourceCommit} to ${targetCommit}?`,
+                buttons: [
+                    {
+                        label: 'Yes',
+                        onClick: () => this.setState({ show_alert: true, severity: 'success', sourceCommit: sourceCommit, targetCommit: targetCommit })
+
+                    },
+                    {
+                        label: 'No',
+                        onClick: () => {}
+
+                    }
+                ]
+            })
+
+        }
+    }
+
     render() {
-        if(this.isEmpty()){
-            return(<div id='index-page'>
-                <header>
-                    <h1>Reliant Test 2</h1>
-                </header>
+        return(
+
+            <div>
+
+                <div id='index-page'>
+                    <header>
+                        <h1>Reliant Test</h1>
+                    </header>
+                    <AlertDialog show={this.state.show_alert}
+                                 severity={this.state.severity}
+                                 onClose={() => this.setState({ show_alert: false, severity: null })}
+                                 sourceCommit={this.state.sourceCommit}
+                                 targetCommit={this.state.targetCommit}>
+                    </AlertDialog>
+                    { this.bodyBuild() }
+                </div>
             </div>)
-        }else{
-            return(<div id='index-page'>
-                <header>
-                    <h1>Reliant Test 2</h1>
-                </header>
+    }
+
+    bodyBuild(){
+        if(!this.isEmpty()){
+            return(<div id='main-page'>
+
                 <DiffModal git_node={this.state.git_node} show={this.state.show} handleClose={() => { this.hideDiffModal() }}>
                     "None"
                 </DiffModal>
@@ -109,12 +166,12 @@ class GitGraph extends Component {
                         <ReactFlow
                             elements={ this.state.data.nodes.concat(this.state.data.edges) }
                             onElementClick = {(event, element) => this.showModal(element) }
+                            onNodeDragStop={this.onNodeDragStop}
                         />
                     </div>
                 </div>
             </div>)
         }
-
     }
 }
 
