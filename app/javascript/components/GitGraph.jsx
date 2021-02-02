@@ -114,21 +114,32 @@ class GitGraph extends Component {
         if(colisionNodes.length == 1){
             const sourceCommit = selectedNode.id.slice(0, 7)
             const targetCommit = colisionNodes[0].id.slice(0,7)
+
             confirmAlert({
-                title: 'Merge commits',
-                message: `Are you sure you want merge ${sourceCommit} to ${targetCommit}?`,
-                buttons: [
-                    {
-                        label: 'Yes',
-                        onClick: () => this.setState({ show_alert: true, severity: 'success', sourceCommit: sourceCommit, targetCommit: targetCommit })
-
-                    },
-                    {
-                        label: 'No',
-                        onClick: () => {}
-
-                    }
-                ]
+                customUI: ({ onClose }) => {
+                    return (
+                        <div className='custom-ui'>
+                            <h1>Are you sure?</h1>
+                            <p>You want merge {sourceCommit} to {targetCommit}?</p>
+                            <p>Please add a message below</p>
+                            <p><input
+                                name="message"
+                                type="text"
+                                value={this.state.message}
+                                onChange={this.onInputchange}
+                            /></p>
+                            <button onClick={onClose}>No</button>
+                            <button
+                                onClick={() => {
+                                    this.handleClickDelete();
+                                    onClose();
+                                }}
+                            >
+                                Yes
+                            </button>
+                        </div>
+                    );
+                }
             })
 
         }
@@ -172,6 +183,12 @@ class GitGraph extends Component {
                 </div>
             </div>)
         }
+    }
+
+    onInputchange(event) {
+        this.setState({
+            [event.target.name]: event.target.value
+        });
     }
 }
 
