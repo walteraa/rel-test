@@ -19,12 +19,6 @@ RSpec.describe GitGraph, type: :model do
   context 'valid graph' do
     it { expect(described_class.new(nodes: nodes, edges: edges)).to be_valid }
   end
-  context 'invalid graph' do
-    it { expect(described_class.new(nodes: nodes, edges: nil)).to_not be_valid }
-    it { expect(described_class.new(nodes: nodes, edges: [])).to_not be_valid }
-    it { expect(described_class.new(nodes: nil, edges: edges)).to_not be_valid }
-    it { expect(described_class.new(nodes: [], edges: edges)).to_not be_valid }
-  end
 end
 
 

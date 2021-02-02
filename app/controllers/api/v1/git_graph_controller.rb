@@ -3,9 +3,14 @@
 module Api
   module V1
     class GitGraphController < ApplicationController
-      before_action :get_logs, only: :index
+      before_action :get_logs, only: [:index, :show]
 
       def index
+      end
+
+      def show
+        @node = @git_graph.find_node(params[:hash])
+        @node.diff = Git::ClientWrapper.get_diff(@node.id)
       end
 
       private

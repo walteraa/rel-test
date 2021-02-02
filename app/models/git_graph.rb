@@ -5,9 +5,17 @@ class GitGraph
   attr_accessor :nodes, :edges
 
   def initialize(nodes: nodes, edges: edges)
-    @nodes = nodes&.map { |node| GitNode.new(id: node['hash'], message: node['message'], timestamp: node['timestamp']) }
+    @nodes = nodes&.map do |node|
+      GitNode.new(id: node['hash'],
+                  message: node['message'],
+                  timestamp: node['timestamp'],
+                  parents: node['parents_hash']&.split(' '))
+    end
     @edges = edges&.map { |edge| GitEdge.new(source: edge['source'], target: edge['target']) }
   end
 
-  validates :nodes, :edges, presence: true
+  def find_node(hash)
+    @nodes&.select{ |node| node.id == hash }.first
+  end
+
 end
