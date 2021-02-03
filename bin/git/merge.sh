@@ -5,11 +5,11 @@ merge() {
   target=$2
   message=$3
   current_branch=`git branch | awk '/^\*/{print $2}'`
-  tmp_branch=tmp_${source}
+  tmp_branch="tmp_${source}"
   merge_branch="merging-${target}-${source}"
 
   git checkout ${source} -b ${tmp_branch}
-  git checkout ${target_sha} -b ${merge_branch}
+  git checkout ${target} -b ${merge_branch}
   git merge ${tmp_branch} -m "${message}"
 
   if [ $? -gt 0 ]

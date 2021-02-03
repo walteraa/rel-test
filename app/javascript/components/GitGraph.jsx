@@ -12,7 +12,12 @@ class GitGraph extends Component {
         super();
         this.state = { data: {}, show: false,  git_node: null }
     }
+
     async componentDidMount() {
+        this.buildGitTree().then()
+    }
+
+    async buildGitTree(){
         try {
             const response = await fetch(`api/v1/git_graph`)
             const json = await response.json();
@@ -35,11 +40,11 @@ class GitGraph extends Component {
             let localEdges = []
             for (const [_, node] of Object.entries(treeUtils.nodes)) {
                 localNodes.push( { id: node.id,
-                                    data: { label: node.id.slice(0, 7),
-                                            branch_id: node.branch_index,
-                                            title: node.title},
-                                    position: { x: node.getX(), y: node.getY() },
-                                    style: { color: node.getColor(), borderColor: node.getColor() }} )
+                    data: { label: node.id.slice(0, 7),
+                        branch_id: node.branch_index,
+                        title: node.title},
+                    position: { x: node.getX(), y: node.getY() },
+                    style: { color: node.getColor(), borderColor: node.getColor() }} )
 
             }
 
@@ -59,7 +64,7 @@ class GitGraph extends Component {
                     }
                 })
 
-            } catch (e) {
+        } catch (e) {
             console.log(e)
         }
     }
@@ -85,6 +90,7 @@ class GitGraph extends Component {
     async sendMergeCommand(sourceHash, targetHash, message){
         GitGraphApi.sendMergeCommand(sourceHash, targetHash, message).then(() => {
             this.setState({show_alert: true, severity: 'success', sourceCommit: sourceHash, targetCommit: targetHash  })
+            this.buildGitTree().then()
         }).catch(() =>{
             this.setState({show_alert: true, severity: 'danger', sourceCommit: sourceHash, targetCommit: targetHash  })
         })
